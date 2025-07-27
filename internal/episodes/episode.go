@@ -7,28 +7,30 @@ import (
 )
 
 type episode struct {
-	id    string
-	title string
-	url   string
+	Id    string
+	Title string
+	Url   string
 }
 
-type Episodes map[int]episode
+type Episodes []episode
 
 func GetEpisodes() (Episodes, error) {
-	eps := make(Episodes)
-
 	feed, err := utils.GetRss()
 	if err != nil {
-		return eps, err
+		return nil, err
+
 	}
 
 	rssItems := feed.Channel.Items
+	eps := make([]episode, len(rssItems))
+
 	for i, item := range rssItems {
 		epNum := len(rssItems) - i
-		eps[epNum] = episode{
-			id:    strconv.Itoa(epNum),
-			title: item.Title,
-			url:   item.Enclosure.URL,
+
+		eps[epNum-1] = episode{
+			Id:    strconv.Itoa(epNum),
+			Title: item.Title,
+			Url:   item.Enclosure.URL,
 		}
 	}
 
