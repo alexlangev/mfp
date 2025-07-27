@@ -2,8 +2,11 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/alexlangev/mfp/internal/episodes"
+	"github.com/alexlangev/mfp/internal/tui"
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 func main() {
@@ -13,4 +16,9 @@ func main() {
 	fmt.Println(x[1])
 	fmt.Println(x[2])
 	fmt.Println(x[3])
+
+	if _, err := tea.NewProgram(tui.InitialModel()).Run(); err != nil {
+		fmt.Println("Error running program:", err)
+		os.Exit(1)
+	}
 }

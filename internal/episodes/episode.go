@@ -12,10 +12,10 @@ type episode struct {
 	url   string
 }
 
-type episodes map[int]episode
+type Episodes map[int]episode
 
-func GetEpisodes() (episodes, error) {
-	eps := make(episodes)
+func GetEpisodes() (Episodes, error) {
+	eps := make(Episodes)
 
 	feed, err := utils.GetRss()
 	if err != nil {
