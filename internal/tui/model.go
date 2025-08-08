@@ -1,25 +1,65 @@
 package tui
 
-import (
-	e "github.com/alexlangev/mfp/internal/episodes"
+import tea "github.com/charmbracelet/bubbletea"
+
+type ViewState int
+
+const (
+	ViewConnecting ViewState = iota
+	ViewList
+	ViewPlayer
 )
 
-type Model struct {
-	isConnected     bool
-	episodes        e.Episodes
-	selectedEpisode int
-	err             error
+type model struct {
+	viewState ViewState
 }
 
-type errMsg struct{ err error }
+func (m model) Init() tea.Cmd {
+	return nil
+}
 
-// implement the error interface on the message
-func (e errMsg) Error() string { return e.err.Error() }
+func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
 
-type epsMsg struct{ episodes e.Episodes }
+	case tea.KeyMsg:
 
-func InitialModel() Model {
-	return Model{
-		isConnected: false,
+		switch msg.String() {
+
+		case "ctrl+c", "q":
+			return m, tea.Quit
+
+		case "c":
+			m.viewState = ViewConnecting
+
+		case "l":
+			m.viewState = ViewList
+
+		case "p":
+			m.viewState = ViewPlayer
+		}
+	}
+
+	return m, nil
+}
+
+func (m model) View() string {
+	s := "current view is: "
+
+	switch m.viewState {
+	case ViewConnecting:
+		s += "Connecting"
+	case ViewList:
+		s += "List"
+	case ViewPlayer:
+		s += "Player"
+	}
+
+	s = s + "\n"
+	return s
+}
+
+func InitialModel() model {
+	return model{
+		viewState: ViewConnecting,
 	}
 }
