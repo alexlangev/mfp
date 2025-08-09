@@ -1,6 +1,11 @@
 package tui
 
-import tea "github.com/charmbracelet/bubbletea"
+import (
+	"github.com/alexlangev/mfp/internal/tui/connecting"
+	"github.com/alexlangev/mfp/internal/tui/episodeList"
+	"github.com/alexlangev/mfp/internal/tui/player"
+	tea "github.com/charmbracelet/bubbletea"
+)
 
 type viewState int
 
@@ -14,9 +19,9 @@ type model struct {
 	viewState viewState
 	inits     map[viewState]bool
 	// subviews
-	connectingView connectingView
-	listView       listView
-	playerView     playerView
+	connectingView connecting.Model
+	epList         episodeList.Model
+	player         player.Model
 }
 
 func (m model) Init() tea.Cmd {
@@ -57,12 +62,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case viewList:
 		var cmd tea.Cmd
-		m.listView, cmd = m.listView.Update(msg)
+		m.epList, cmd = m.epList.Update(msg)
 		return m, cmd
 
 	case viewPlayer:
 		var cmd tea.Cmd
-		m.playerView, cmd = m.playerView.Update(msg)
+		m.player, cmd = m.player.Update(msg)
 		return m, cmd
 	}
 
@@ -79,9 +84,9 @@ func (m model) switchView(target viewState) (model, tea.Cmd) {
 		case viewConnecting:
 			return m, m.connectingView.Init()
 		case viewList:
-			return m, m.listView.Init()
+			return m, m.epList.Init()
 		case viewPlayer:
-			return m, m.playerView.Init()
+			return m, m.player.Init()
 		}
 	}
 	return m, nil
@@ -92,9 +97,9 @@ func (m model) View() string {
 	case viewConnecting:
 		return m.connectingView.View()
 	case viewList:
-		return m.listView.View()
+		return m.epList.View()
 	case viewPlayer:
-		return m.playerView.View()
+		return m.player.View()
 	}
 	return ""
 }
@@ -102,9 +107,9 @@ func (m model) View() string {
 func InitialModel() model {
 	return model{
 		viewState:      viewConnecting,
-		connectingView: NewConnectingView(),
-		listView:       NewListView(),
-		playerView:     NewPlayerView(),
+		connectingView: connecting.NewConnectingView(),
+		epList:         episodeList.NewListView(),
+		player:         player.NewPlayerView(),
 		inits: map[viewState]bool{
 			viewConnecting: false,
 			viewList:       false,
