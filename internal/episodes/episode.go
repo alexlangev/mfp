@@ -6,13 +6,13 @@ import (
 	"github.com/alexlangev/mfp/internal/utils"
 )
 
-type episode struct {
+type Episode struct {
 	Id    string
 	Title string
 	Url   string
 }
 
-type Episodes []episode
+type Episodes []Episode
 
 func GetEpisodes() (Episodes, error) {
 	feed, err := utils.GetRss()
@@ -22,12 +22,12 @@ func GetEpisodes() (Episodes, error) {
 	}
 
 	rssItems := feed.Channel.Items
-	eps := make([]episode, len(rssItems))
+	eps := make([]Episode, len(rssItems))
 
 	for i, item := range rssItems {
 		epNum := len(rssItems) - i
 
-		eps[epNum-1] = episode{
+		eps[epNum-1] = Episode{
 			Id:    strconv.Itoa(epNum),
 			Title: item.Title,
 			Url:   item.Enclosure.URL,
