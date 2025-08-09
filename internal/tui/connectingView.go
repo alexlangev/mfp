@@ -1,33 +1,32 @@
-package connecting
+package tui
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type Model struct {
+type ConModel struct {
 	isConnecting bool
 	spinner      spinner.Model
 }
 
 type connectedMsg struct{}
 
-func (m Model) Init() tea.Cmd {
+func (m ConModel) Init() tea.Cmd {
 	// return m.spinner.Tick
 	return tea.Batch(
 		m.spinner.Tick,
-		mockConnection(),
 	)
 }
 
-func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
+func (m ConModel) Update(msg tea.Msg) (ConModel, tea.Cmd) {
 	switch msg := msg.(type) {
-	case connectedMsg:
+	case EpisodesMsg:
 		m.isConnecting = false
 		return m, nil
+
 	default:
 		var cmd tea.Cmd
 		m.spinner, cmd = m.spinner.Update(msg)
@@ -35,31 +34,24 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	}
 }
 
-func (m Model) View() string {
+func (m ConModel) View() string {
 	s := ""
 
 	if m.isConnecting {
 		s = fmt.Sprintf("Trying to connect%s", m.spinner.View())
 	} else {
-		s = "Connection established!"
+		s = "Connection established!!!"
 	}
 
 	return s
 }
 
-func NewConnectingView() Model {
+func NewConnectingView() ConModel {
 	sp := spinner.New()
 	sp.Spinner = spinner.Ellipsis
 
-	return Model{
+	return ConModel{
 		isConnecting: true,
 		spinner:      sp,
-	}
-}
-
-func mockConnection() tea.Cmd {
-	return func() tea.Msg {
-		time.Sleep(15 * time.Second)
-		return connectedMsg{}
 	}
 }

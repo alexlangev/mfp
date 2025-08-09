@@ -1,9 +1,9 @@
 package tui
 
 import (
-	"github.com/alexlangev/mfp/internal/tui/connecting"
-	"github.com/alexlangev/mfp/internal/tui/episodeList"
-	"github.com/alexlangev/mfp/internal/tui/player"
+	"time"
+
+	"github.com/alexlangev/mfp/internal/episodes"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -18,21 +18,37 @@ const (
 type model struct {
 	viewState viewState
 	inits     map[viewState]bool
+	eps       episodes.Episodes
 	// subviews
-	connectingView connecting.Model
-	epList         episodeList.Model
-	player         player.Model
+	connectingView ConModel
+	epList         EpModel
+	player         PModel
 }
 
 func (m model) Init() tea.Cmd {
-
 	m.inits = map[viewState]bool{
 		viewConnecting: true,
 		viewList:       false,
 		viewPlayer:     false,
 	}
 
-	return m.connectingView.Init()
+	// fetch and parse episode
+	return tea.Batch(
+		m.connectingView.Init(),
+		fetchEpisodesCmd(),
+	)
+}
+
+func fetchEpisodesCmd() tea.Cmd {
+	return func() tea.Msg {
+		time.Sleep(10 * time.Second)
+		episodes, _ := episodes.GetEpisodes()
+		return EpisodesMsg{eps: episodes}
+	}
+}
+
+type EpisodesMsg struct {
+	eps episodes.Episodes
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -52,6 +68,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "p":
 			return m.switchView(viewPlayer)
 		}
+
+	case EpisodesMsg:
+		var cCmd, lCmd tea.Cmd
+		m.connectingView, cCmd = m.connectingView.Update(msg)
+		// m.epList, lCmd = m.epList.Update(msg)
+		return m, tea.Batch(cCmd, lCmd)
 	}
 
 	switch m.viewState {
@@ -107,9 +129,9 @@ func (m model) View() string {
 func InitialModel() model {
 	return model{
 		viewState:      viewConnecting,
-		connectingView: connecting.NewConnectingView(),
-		epList:         episodeList.NewListView(),
-		player:         player.NewPlayerView(),
+		connectingView: NewConnectingView(),
+		epList:         NewListView(),
+		player:         NewPlayerView(),
 		inits: map[viewState]bool{
 			viewConnecting: false,
 			viewList:       false,
