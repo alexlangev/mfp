@@ -15,7 +15,6 @@ type ConModel struct {
 type connectedMsg struct{}
 
 func (m ConModel) Init() tea.Cmd {
-	// return m.spinner.Tick
 	return tea.Batch(
 		m.spinner.Tick,
 	)

@@ -25,6 +25,10 @@ type model struct {
 	player         PModel
 }
 
+type EpisodesMsg struct {
+	eps episodes.Episodes
+}
+
 func (m model) Init() tea.Cmd {
 	m.inits = map[viewState]bool{
 		viewConnecting: true,
@@ -45,10 +49,6 @@ func fetchEpisodesCmd() tea.Cmd {
 		episodes, _ := episodes.GetEpisodes()
 		return EpisodesMsg{eps: episodes}
 	}
-}
-
-type EpisodesMsg struct {
-	eps episodes.Episodes
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -72,7 +72,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case EpisodesMsg:
 		var cCmd, lCmd tea.Cmd
 		m.connectingView, cCmd = m.connectingView.Update(msg)
-		// m.epList, lCmd = m.epList.Update(msg)
+		m.epList, lCmd = m.epList.Update(msg)
+		// switch to list view?
 		return m, tea.Batch(cCmd, lCmd)
 	}
 
