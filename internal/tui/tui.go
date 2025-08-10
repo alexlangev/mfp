@@ -1,8 +1,6 @@
 package tui
 
 import (
-	"time"
-
 	"github.com/alexlangev/mfp/internal/episodes"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -45,7 +43,6 @@ func (m model) Init() tea.Cmd {
 
 func fetchEpisodesCmd() tea.Cmd {
 	return func() tea.Msg {
-		time.Sleep(10 * time.Second)
 		episodes, _ := episodes.GetEpisodes()
 		return EpisodesMsg{eps: episodes}
 	}
@@ -53,6 +50,14 @@ func fetchEpisodesCmd() tea.Cmd {
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+
+	case tea.WindowSizeMsg:
+		var cCmd, lCmd tea.Cmd
+		m.connectingView, cCmd = m.connectingView.Update(msg)
+		m.epList, lCmd = m.epList.Update(msg)
+
+		return m, tea.Batch(cCmd, lCmd)
+
 	case tea.KeyMsg:
 		switch msg.String() {
 

@@ -9,7 +9,7 @@ import (
 
 type EpModel struct {
 	episodesLoaded bool
-	epsList        episodes.Episodes // rename to list items or something?
+	epsList        episodes.Episodes
 	list           list.Model
 }
 
@@ -20,7 +20,7 @@ type epListItem struct {
 var docStyle = lipgloss.NewStyle().Margin(1, 2)
 
 func (li epListItem) Title() string       { return li.ep.Title }
-func (li epListItem) Description() string { return li.ep.Title } // won't use it, maybe...
+func (li epListItem) Description() string { return li.ep.Title }
 func (li epListItem) FilterValue() string { return li.ep.Title }
 
 func (m EpModel) Init() tea.Cmd {
@@ -29,6 +29,9 @@ func (m EpModel) Init() tea.Cmd {
 
 func (m EpModel) Update(msg tea.Msg) (EpModel, tea.Cmd) {
 	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		h, v := docStyle.GetFrameSize()
+		m.list.SetSize(msg.Width-h, msg.Height-v)
 	case EpisodesMsg:
 		m.episodesLoaded = true
 		m.epsList = msg.eps
@@ -56,8 +59,11 @@ func (m EpModel) View() string {
 }
 
 func NewListView() EpModel {
-	l := list.New([]list.Item{}, list.NewDefaultDelegate(), 50, 100)
-	l.Title = "Episodes"
+	delegate := list.NewDefaultDelegate()
+	delegate.ShowDescription = false
+
+	l := list.New([]list.Item{}, delegate, 0, 0)
+	l.Title = "Music for programing"
 
 	return EpModel{
 		list: l,
