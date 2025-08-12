@@ -44,11 +44,34 @@ func (m EpModel) Update(msg tea.Msg) (EpModel, tea.Cmd) {
 		m.list.SetItems(items)
 
 		return m, nil
+
+	case tea.KeyMsg:
+		switch msg.String() {
+
+		case "ctrl+c", "q":
+			return m, tea.Quit
+
+		case "enter", " ":
+			return m, selectEpisodeCmd(m)
+		}
 	}
 
 	var cmd tea.Cmd
 	m.list, cmd = m.list.Update(msg)
 	return m, cmd
+}
+
+func selectEpisodeCmd(m EpModel) tea.Cmd {
+	return func() tea.Msg {
+		selected := m.list.SelectedItem()
+
+		if selected != nil {
+			if epItem, ok := selected.(epListItem); ok {
+				return SelectedMsg{selected: epItem.ep}
+			}
+		}
+		return nil
+	}
 }
 
 func (m EpModel) View() string {

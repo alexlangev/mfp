@@ -17,7 +17,9 @@ type model struct {
 	viewState viewState
 	inits     map[viewState]bool
 	eps       episodes.Episodes
+	selected  episodes.Episode
 	// subviews
+	// TODO find better naming?
 	connectingView ConModel
 	epList         EpModel
 	player         PModel
@@ -25,6 +27,10 @@ type model struct {
 
 type EpisodesMsg struct {
 	eps episodes.Episodes
+}
+
+type SelectedMsg struct {
+	selected episodes.Episode
 }
 
 func (m model) Init() tea.Cmd {
@@ -52,15 +58,25 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 
 	case tea.WindowSizeMsg:
-		var cCmd, lCmd tea.Cmd
+		var cCmd, lCmd, pCmd tea.Cmd
 		m.connectingView, cCmd = m.connectingView.Update(msg)
 		m.epList, lCmd = m.epList.Update(msg)
+		m.player, pCmd = m.player.Update(msg)
 
-		return m, tea.Batch(cCmd, lCmd)
+		return m, tea.Batch(cCmd, lCmd, pCmd)
+
+	case SelectedMsg:
+		m.selected = msg.selected
+		var pCmd tea.Cmd
+		m.player, pCmd = m.player.Update(msg)
+
+		// TODO switch to player view
+		return m, pCmd
 
 	case tea.KeyMsg:
 		switch msg.String() {
 
+		// Move these to the subviews?
 		case "ctrl+c", "q":
 			return m, tea.Quit
 
