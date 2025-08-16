@@ -23,6 +23,13 @@ func (m PModel) Update(msg tea.Msg) (PModel, tea.Cmd) {
 
 	case SelectedMsg:
 		m.ep = msg.selected
+
+	case tea.KeyMsg:
+		switch msg.String() {
+
+		case "esc":
+			return m, switchViewCmd(viewList)
+		}
 	}
 
 	return m, nil
