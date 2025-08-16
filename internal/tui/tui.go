@@ -33,6 +33,10 @@ type SelectedMsg struct {
 	selected episodes.Episode
 }
 
+type SwitchViewMsg struct {
+	viewState viewState
+}
+
 func (m model) Init() tea.Cmd {
 	m.inits = map[viewState]bool{
 		viewConnecting: true,
@@ -54,6 +58,12 @@ func fetchEpisodesCmd() tea.Cmd {
 	}
 }
 
+func switchViewCmd(v viewState) tea.Cmd {
+	return func() tea.Msg {
+		return SwitchViewMsg{viewState: v}
+	}
+}
+
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 
@@ -70,34 +80,45 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		var pCmd tea.Cmd
 		m.player, pCmd = m.player.Update(msg)
 
-		// TODO switch to player view
 		return m, pCmd
 
 	case tea.KeyMsg:
 		switch msg.String() {
 
-		// Move these to the subviews?
-		case "ctrl+c", "q":
+		case "ctrl+c":
 			return m, tea.Quit
-
-		case "c":
-			return m.switchView(viewConnecting)
-
-		case "l":
-			return m.switchView(viewList)
-
-		case "p":
-			return m.switchView(viewPlayer)
 		}
 
+	case SwitchViewMsg:
+		m.viewState = msg.viewState
+		var cmd tea.Cmd
+
+		if !m.inits[msg.viewState] {
+			m.inits[msg.viewState] = true
+
+			switch msg.viewState {
+			case viewConnecting:
+				cmd = m.connectingView.Init()
+			case viewList:
+				cmd = m.epList.Init()
+			case viewPlayer:
+				cmd = m.player.Init()
+			}
+		}
+		return m, cmd
+
 	case EpisodesMsg:
-		var cCmd, lCmd tea.Cmd
+		var cCmd, lCmd, pCmd tea.Cmd
 		m.connectingView, cCmd = m.connectingView.Update(msg)
 		m.epList, lCmd = m.epList.Update(msg)
-		// switch to list view?
-		return m, tea.Batch(cCmd, lCmd)
+
+		// not sure about this
+		pCmd = switchViewCmd(viewList)
+
+		return m, tea.Batch(cCmd, lCmd, pCmd)
 	}
 
+	// msg handling of subviews
 	switch m.viewState {
 	case viewConnecting:
 		var cmd tea.Cmd
@@ -115,24 +136,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, cmd
 	}
 
-	return m, nil
-}
-
-func (m model) switchView(target viewState) (model, tea.Cmd) {
-	m.viewState = target
-
-	if !m.inits[target] {
-		m.inits[target] = true
-
-		switch target {
-		case viewConnecting:
-			return m, m.connectingView.Init()
-		case viewList:
-			return m, m.epList.Init()
-		case viewPlayer:
-			return m, m.player.Init()
-		}
-	}
 	return m, nil
 }
 

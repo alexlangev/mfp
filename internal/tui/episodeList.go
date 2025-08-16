@@ -52,7 +52,12 @@ func (m EpModel) Update(msg tea.Msg) (EpModel, tea.Cmd) {
 			return m, tea.Quit
 
 		case "enter", " ":
-			return m, selectEpisodeCmd(m)
+			// return m, selectEpisodeCmd(m)
+
+			return m, tea.Batch(
+				selectEpisodeCmd(m),
+				switchViewCmd(viewPlayer),
+			)
 		}
 	}
 
